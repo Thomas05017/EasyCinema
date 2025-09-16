@@ -1,0 +1,40 @@
+const movies = [
+    {
+      id: 1,
+      title: "Weapons",
+      genres: "Horror, Mistero",
+      description: "Quando tutti i bambini di una stessa classe, tranne uno, scompaiono misteriosamente nella stessa notte esattamente alla stessa ora, l’intera comunità si ritrova a interrogarsi su chi o cosa sia responsabile della loro sparizione.",
+      director: "Zach Cregger",
+      year: 2025,
+      poster: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/5MzsXDT8xx3X1Lxv2qSDudp9vfK.jpg",
+    },
+    {
+      id: 2,
+      title: "Superman",
+      genres: "Fantascienza, Avventura, Azione",
+      description: "Rivelatosi già tre anni fa a un mondo dove vivono diversi coloriti metaumani, Superman è intervenuto in un conflitto armato tra due nazioni, per fermare un massacro. Questo ha dato vita a un incidente geopolitico complesso: la Nazione da lui ostacolata è storicamente alleata degli Stati Uniti, di cui Superman è cittadino. Un metaumano proveniente da quella nazione arriva così a Metropolis e sconfigge l'Uomo d'acciaio - è la prima volta che qualcuno ci riesce. Volato al sicuro in Antartide, Superman chiama in soccorso il supercane Krypto che, non senza prima strapazzarlo un po', lo trascina al sicuro nella Fortezza della Solitudine. Nel mentre Lex Luthor, coinvolto anche nella guerra dove Superman è intervenuto, porta avanti un insidioso piano per scoprire i segreti della sua nemesi screditarne l'immagine e avere finalmente l'autorizzazione del governo per eliminarlo.",
+      director: "James Gunn",
+      year: 2025,
+      poster: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/mZtiFCSqqyT9q0B07pvGQIZRG62.jpg",
+    },
+    {
+      id: 3,
+      title: "Io sono nessuno 2",
+      genres: "Azione, Thriller",
+      description: "Il padre di periferia Hutch Mansell, un ex assassino letale, viene riportato nel suo passato violento dopo aver sventato un'invasione domestica, innescando una catena di eventi che svela i segreti sul passato di sua moglie Becca e sul suo.",
+      director: "Timo Tjahjanto",
+      year: 2025,
+      poster: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/j2nxKRLJ3O02CdvB7nrTEN7Qydl.jpg",
+    },
+    {
+      id: 4,
+      title: "Mercoledì",
+      genres: "Sci-Fi, Fantasy, Mistero, Commedia",
+      description: "Perspicace, sarcastica e... un po' inquietante, Mercoledì Addams indaga su misteri intricati mentre conosce nuovi amici e rivali alla Nevermore Academy.",
+      director: "Miles Millar, Alfred Gough",
+      year: 2022,
+      poster: "https://media.themoviedb.org/t/p/w300_and_h450_bestv2/sci4aAuTCWQsIs2uo7LoZVtMdD0.jpg",
+    },
+  ];
+  
+  export default movies;
