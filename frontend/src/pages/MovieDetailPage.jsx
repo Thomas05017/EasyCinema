@@ -2,19 +2,21 @@ import { useParams, Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import moviesData from '../data/movies';
 import SeatSelection from '../components/SeatSelection';
+import { useAuth } from '../context/AuthContext';
 
 const MovieDetailPage = () => {
     const { id } = useParams();
     const movie = moviesData.find(m => m.id === parseInt(id));
 
     const [selectedShowtime, setSelectedShowtime] = useState(null);
+    const {logout} = useAuth();
 
     if (!movie) {
         return (
             <>
-                <header className="bg-black shadow-md p-4 text-center">
+                <nav className="bg-black shadow-md p-4 justify-center flex space-x-4">
                     <h1 className="text-3xl font-bold text-white">EasyCinema</h1>
-                </header>
+                </nav>
 
                 <div className="min-h-screen bg-gray-800 text-center p-8">
                     <h1 className="text-2xl font-bold text-gray-100 mb-4">Film non trovato</h1>
@@ -26,9 +28,12 @@ const MovieDetailPage = () => {
 
     return (
         <>
-            <header className="bg-black shadow-md p-4 text-center">
+            <nav className="bg-black shadow-md p-4 justify-center flex space-x-4">
                 <Link to="/"><h1 className="text-3xl font-bold text-white">EasyCinema</h1></Link>
-            </header>
+                <button onClick={logout} className="bg-red-500 text-white py-2 px-4 rounded-full hover:bg-red-600">
+                    Logout
+                </button>
+            </nav>
 
             <div className="bg-gray-800 min-h-screen p-8">
                 <div className="max-sm:m-4 max-lg:m-16 bg-black rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
@@ -43,7 +48,7 @@ const MovieDetailPage = () => {
                         <p className="text-gray-200 leading-relaxed mb-4">{movie.genres}</p>
                         <p className="text-gray-300 leading-relaxed">{movie.description}</p>
 
-                        <h2 className="text-2xl font-bold mt-6 mb-4 text-gray-800">Seleziona uno spettacolo</h2>
+                        <h2 className="text-2xl font-bold mt-6 mb-4 text-gray-200">Seleziona un orario</h2>
                         <div className="flex flex-wrap gap-4">
                             {movie.showtimes.map(showtime => (
                             <button
@@ -61,10 +66,10 @@ const MovieDetailPage = () => {
                         </div>
 
                         {selectedShowtime && (
-                            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                                <h3 className="text-xl font-bold text-gray-800">Mappa posti per le {selectedShowtime.time}</h3>
+                            <div className="mt-8 pt-6 bg-gray-800 rounded-lg">
+                                <h3 className="text-xl font-bold pl-8 text-gray-200">Mappa posti per le {selectedShowtime.time}</h3>
                                 
-                                <div className="mt-8">
+                                <div className="mt-7">
                                     <SeatSelection showtime={selectedShowtime} />
                                 </div>
                             </div>

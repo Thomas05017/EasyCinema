@@ -18,17 +18,17 @@ const SeatSelection = ({ showtime }) => {
 
     const handleBooking = () => {
         if (selectedSeats.length > 0) {
-            alert(`Hai prenotato ${selectedSeats.length} posti.`);
-            // Qui potresti chiamare una funzione per inviare i dati a un server
-            // e poi pulire la selezione: setSelectedSeats([]);
+            alert(`Prenotazione effettuata con successo!.`);
+            // funzione per inviare i dati a un server
+            // setSelectedSeats([]);
         } else {
             alert('Seleziona almeno un posto!');
         }
     };
 
     return (
-        <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Seleziona i tuoi posti</h3>
+        <div className="bg-gray-700 rounded-lg p-8">
+            <h3 className="text-xl font-bold text-gray-200 mb-4">Seleziona i tuoi posti</h3>
             <div className="flex flex-col items-center">
                 {showtime.seats.map((row, rowIndex) => (
                     <div key={rowIndex} className="flex gap-2 my-1">
