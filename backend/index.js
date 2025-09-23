@@ -23,6 +23,85 @@ db.connect(err => {
     console.log('Connesso al database MySQL.');
 });
 
+app.get('/api/movies', (req, res) => {
+    const sql = `SELECT * FROM movies`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Errore nel recupero dei film:', err);
+            return res.status(500).json({ message: 'Errore interno del server.' });
+        }
+        res.json(results);
+    });
+});
+
+app.get('/api/movies/:id', (req, res) => {
+    const movieId = req.params.id;
+
+    const sql = `
+        SELECT 
+            m.*, 
+            s.id as showtime_id, s.date as showtime_date, s.time as showtime_time,
+            se.row_index, se.col_index, se.is_booked
+        FROM movies m
+        LEFT JOIN showtimes s ON m.id = s.movie_id
+        LEFT JOIN seats se ON s.id = se.showtime_id
+        WHERE m.id = ?
+        ORDER BY s.date, s.time, se.row_index, se.col_index
+    `;
+
+    db.query(sql, [movieId], (err, results) => {
+        if (err) {
+            console.error('Errore nel recupero dei dettagli del film:', err);
+            return res.status(500).json({ message: 'Errore interno del server.' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Film non trovato.' });
+        }
+
+        const movie = {
+            id: results[0].id,
+            title: results[0].title,
+            description: results[0].description,
+            director: results[0].director,
+            year: results[0].year,
+            poster: results[0].poster,
+            showtimes: {}
+        };
+
+        results.forEach(row => {
+            if (row.showtime_id) {
+                if (!movie.showtimes[row.showtime_id]) {
+                    movie.showtimes[row.showtime_id] = {
+                        id: row.showtime_id,
+                        date: row.showtime_date,
+                        time: row.showtime_time,
+                        seats: []
+                    };
+                }
+                if (row.row_index !== null) {
+                    movie.showtimes[row.showtime_id].seats.push({
+                        row: row.row_index,
+                        col: row.col_index,
+                        isBooked: row.is_booked
+                    });
+                }
+            }
+        });
+
+        movie.showtimes = Object.values(movie.showtimes);
+
+        movie.showtimes.forEach(showtime => {
+            const seatMatrix = Array(5).fill(null).map(() => Array(8).fill(0));
+            showtime.seats.forEach(seat => {
+                seatMatrix[seat.row][seat.col] = seat.isBooked ? 1 : 0;
+            });
+            showtime.seats = seatMatrix;
+        });
+
+        res.json(movie);
+    });
+});
+
 app.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
 
@@ -40,7 +119,7 @@ app.post('/api/register', async (req, res) => {
                 console.error('Errore di registrazione:', err);
                 return res.status(500).json({message: 'Errore interno del server.'});
             }
-            res.json(201).json({ message: 'Registrazione avvenuto con successo!'});
+            res.status(201).json({ message: 'Registrazione avvenuto con successo!'});
         });
     } catch (error) {
         res.status(500).json({ message: 'Errore interno del server'});
@@ -61,17 +140,17 @@ app.post('/api/login', async (req, res) => {
         }
         if (results.length === 0)
             return res.status(401).json({ message: 'Credenziali non valide.'});
-    })
 
-    const user = results[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(401).json({ message: 'Credenziali non valide.' });
-    }
+        const user = results[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Credenziali non valide.' });
+        }
 
-    const token = jwt.sign({ username: user.username }, '123abcxyz987', { expiresIn: '1h' });
+        const token = jwt.sign({ username: user.username }, '123abcxyz987', { expiresIn: '1h' });
 
-    res.json({ message: 'Login avvenuto con successo!', token });
+        res.json({ message: 'Login avvenuto con successo!', token });
+    });
 });
 
 app.listen(5000, () => {
