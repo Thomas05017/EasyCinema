@@ -28,6 +28,7 @@ db.query(
     `CREATE TABLE IF NOT EXISTS movies (
         id INT AUTO_INCREMENT PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
+        genres VARCHAR(500),
         description TEXT,
         director VARCHAR(255),
         year INT,
@@ -71,7 +72,7 @@ db.query(
     )`,
     (err) => {
         if (err) {
-            console.error('Error creating table note:', err);
+            console.error('Error creating table seats:', err);
             db.end();
             return;
         }
@@ -156,6 +157,12 @@ const populateData = async () => {
             }
         }
     }
+    
+    console.log('Database seeding completed successfully!');
+    db.end();
 };
 
-populateData();
+populateData().catch(err => {
+    console.error('Error during database seeding:', err);
+    db.end();
+});
