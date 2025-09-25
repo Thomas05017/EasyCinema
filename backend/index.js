@@ -248,7 +248,6 @@ app.get('/api/my-bookings', verifyToken, (req, res) => {
             return res.status(500).json({ message: 'Errore interno del server.' });
         }
 
-        // Raggruppa i risultati per prenotazione
         const bookings = {};
         results.forEach(row => {
             if (!bookings[row.booking_id]) {
