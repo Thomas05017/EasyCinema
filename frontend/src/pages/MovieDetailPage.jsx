@@ -142,6 +142,7 @@ const MovieDetailPage = () => {
 
               {selectedShowtime && (
                 <div className="transition-all duration-500 ease-in-out">
+
                   <SeatSelection showtime={selectedShowtime} onBookingSuccess={handleBookingSuccess} />
                 </div>
               )}
