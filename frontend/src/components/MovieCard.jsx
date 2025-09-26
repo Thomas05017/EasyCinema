@@ -35,7 +35,6 @@ const MovieCard = ({ movie }) => {
             />
           )}
           
-          {/* Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
           {/* Play Icon */}

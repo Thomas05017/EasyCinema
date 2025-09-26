@@ -40,14 +40,16 @@ const MovieDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-900 text-xl font-semibold text-white">
-        <div className="flex items-center gap-3">
-          <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" strokeDasharray="32" strokeDashoffset="32">
-              <animate attributeName="stroke-dashoffset" dur="1s" values="32;0;32" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          Caricamento dettagli...
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6 p-8">
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-purple-500 rounded-full animate-spin animation-delay-150"></div>
+          </div>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-slate-200 mb-2">Caricamento dettagli film...</h2>
+            <p className="text-slate-400">Stiamo preparando tutto per te</p>
+          </div>
         </div>
       </div>
     );
@@ -55,14 +57,23 @@ const MovieDetailPage = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-900 text-xl font-semibold text-red-400">
-        <div className="text-center">
-          <p>Errore: {error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="bg-slate-800 rounded-2xl p-8 shadow-2xl border border-red-500/20 max-w-md mx-4 text-center">
+          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-red-400 mb-2">Film Non Trovato</h3>
+          <p className="text-slate-300 mb-6">{error}</p>
           <Link
             to="/"
-            className="mt-4 inline-block text-blue-400 hover:text-blue-300 underline"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
           >
-            Torna alla lista film
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Torna ai film
           </Link>
         </div>
       </div>
@@ -72,83 +83,169 @@ const MovieDetailPage = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('it-IT', { 
-      weekday: 'short',
+      weekday: 'long',
       day: 'numeric', 
-      month: 'short' 
+      month: 'long',
+      year: 'numeric'
     });
   };
 
+  const formatTime = (timeString) => {
+    return timeString.slice(0, 5); // Remove seconds
+  };
+
   return (
-    <div className="bg-gray-900 min-h-screen">
-      <div className="bg-gray-800 p-4 shadow-lg">
-        <div className="container mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <header className="bg-slate-800/80 backdrop-blur-xl border-b border-slate-700/50 sticky top-0 z-40">
+        <div className="container mx-auto px-6 py-4">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+            className="inline-flex items-center gap-3 text-slate-400 hover:text-indigo-400 font-semibold transition-all duration-200 group"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-            Torna alla lista film
+            <div className="w-8 h-8 bg-slate-700 group-hover:bg-indigo-600 rounded-full flex items-center justify-center transition-all duration-200">
+              <svg className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </div>
+            <span className="group-hover:translate-x-1 transition-transform duration-200">
+              Torna ai film
+            </span>
           </Link>
         </div>
-      </div>
+      </header>
 
-      <div className="container mx-auto p-6">
-        <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+      <div className="container mx-auto px-6 py-8">
+        {/* Movie Hero Section */}
+        <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-700/50 mb-8">
           <div className="flex flex-col lg:flex-row">
-            <div className="lg:w-1/3">
-              <img
-                src={movie.poster}
-                alt={movie.title}
-                className="w-full h-auto object-cover"
-              />
+            {/* Movie Poster */}
+            <div className="lg:w-1/3 relative">
+              <div className="aspect-[2/3] lg:aspect-auto lg:h-full relative overflow-hidden">
+                <img
+                  src={movie.poster}
+                  alt={movie.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-slate-900/60"></div>
+              </div>
             </div>
             
-            <div className="lg:w-2/3 p-6 lg:p-8">
-              <h1 className="text-4xl font-bold text-white mb-2">{movie.title}</h1>
-              <p className="text-gray-400 text-lg mb-2">
-                Diretto da {movie.director} ({movie.year})
-              </p>
-              <p className="text-gray-300 leading-relaxed mb-6">{movie.description}</p>
-              
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4 text-white">
-                  Seleziona uno spettacolo
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {movie.showtimes.map((showtime) => {
-                    const isSelected = selectedShowtime?.id === showtime.id;
-                    return (
-                      <button
-                        key={showtime.id}
-                        onClick={() => setSelectedShowtime(showtime)}
-                        className={`p-4 rounded-lg text-sm font-semibold transition-all transform hover:scale-105
-                          ${
-                            isSelected
-                              ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-400'
-                              : 'bg-gray-700 text-gray-300 hover:bg-blue-500 hover:text-white'
-                          }`}
-                      >
-                        <div className="text-lg font-bold">{showtime.time}</div>
-                        <div className="text-xs opacity-75">
-                          {formatDate(showtime.date)}
-                        </div>
-                      </button>
-                    );
-                  })}
+            {/* Movie Info */}
+            <div className="lg:w-2/3 p-8 lg:p-12 relative">
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-sm font-bold px-4 py-2 rounded-full">
+                      IN PROGRAMMAZIONE
+                    </span>
+                    <span className="bg-slate-700 text-slate-300 text-sm font-medium px-3 py-1 rounded-full">
+                      {movie.year}
+                    </span>
+                  </div>
+                  
+                  <h1 className="text-4xl lg:text-5xl font-bold text-slate-100 mb-3 leading-tight">
+                    {movie.title}
+                  </h1>
+                  
+                  <div className="flex items-center gap-2 text-slate-400 mb-6">
+                    <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span className="text-lg font-medium">Diretto da {movie.director}</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-700/30 rounded-2xl p-6 border border-slate-600/30">
+                  <h3 className="text-slate-300 font-semibold mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Trama
+                  </h3>
+                  <p className="text-slate-200 leading-relaxed text-lg">
+                    {movie.description}
+                  </p>
                 </div>
               </div>
-
-              {selectedShowtime && (
-                <div className="transition-all duration-500 ease-in-out">
-
-                  <SeatSelection showtime={selectedShowtime} onBookingSuccess={handleBookingSuccess} />
-                </div>
-              )}
             </div>
           </div>
         </div>
+
+        {/* Showtime Selection */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl shadow-2xl p-8 lg:p-12 border border-slate-700/50 mb-8">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-slate-100">Orari Spettacoli</h2>
+              <p className="text-slate-400">Seleziona l'orario che preferisci</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+            {movie.showtimes.map((showtime) => {
+              const isSelected = selectedShowtime?.id === showtime.id;
+              return (
+                <button
+                  key={showtime.id}
+                  onClick={() => setSelectedShowtime(showtime)}
+                  className={`p-6 rounded-2xl text-left transition-all duration-300 transform hover:scale-105 border-2 ${
+                    isSelected
+                      ? 'bg-gradient-to-br from-indigo-600 to-purple-600 border-indigo-400 shadow-lg shadow-indigo-500/25 text-white'
+                      : 'bg-slate-700/50 border-slate-600/50 hover:bg-slate-700 hover:border-indigo-400/50 text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`w-3 h-3 rounded-full ${isSelected ? 'bg-white' : 'bg-indigo-400'}`}></div>
+                    {isSelected && (
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    )}
+                  </div>
+                  
+                  <div className="mb-2">
+                    <div className="text-2xl font-bold mb-1">
+                      {formatTime(showtime.time)}
+                    </div>
+                    <div className={`text-sm font-medium capitalize ${isSelected ? 'text-indigo-100' : 'text-slate-400'}`}>
+                      {formatDate(showtime.date)}
+                    </div>
+                  </div>
+                  
+                  <div className={`text-xs font-semibold uppercase tracking-wide ${
+                    isSelected ? 'text-indigo-100' : 'text-indigo-400'
+                  }`}>
+                    Disponibile
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {!selectedShowtime && (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-slate-300 mb-2">Seleziona uno spettacolo</h3>
+              <p className="text-slate-400">Scegli l'orario che preferisci per procedere con la prenotazione</p>
+            </div>
+          )}
+        </div>
+
+        {/* Seat Selection */}
+        {selectedShowtime && (
+          <div className="transform transition-all duration-500 ease-out animate-in fade-in slide-in-from-bottom-8">
+            <SeatSelection showtime={selectedShowtime} onBookingSuccess={handleBookingSuccess} />
+          </div>
+        )}
       </div>
     </div>
   );
