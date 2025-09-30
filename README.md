@@ -75,7 +75,7 @@ cd ../frontend
 npm install
 ```
 
-## ⚙️ Configurazione
+## 🔑 Configurazione
 
 ### Database MySQL con Docker
 
@@ -223,7 +223,7 @@ Dopo aver eseguito lo script `seed.js`, puoi utilizzare questi account:
 - Username: `demo`
 - Password: `demo123`
 
-## 🗄️ Database
+## 📦 Database
 
 ### Tabelle Principali
 
