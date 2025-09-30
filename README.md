@@ -4,17 +4,17 @@ Un'applicazione web moderna per la prenotazione di posti al cinema, costruita co
 
 ## 📋 Indice
 
-- [Caratteristiche](#caratteristiche)
-- [Tecnologie Utilizzate](#tecnologie-utilizzate)
-- [Prerequisiti](#prerequisiti)
-- [Installazione](#installazione)
-- [Configurazione](#configurazione)
-- [Avvio dell'Applicazione](#avvio-dellapplicazione)
-- [Struttura del Progetto](#struttura-del-progetto)
-- [API Endpoints](#api-endpoints)
-- [Credenziali di Test](#credenziali-di-test)
-- [Screenshot](#screenshot)
-- [Licenza](#licenza)
+- [Caratteristiche](#-caratteristiche)
+- [Tecnologie Utilizzate](#-tecnologie-utilizzate)
+- [Prerequisiti](#-prerequisiti)
+- [Installazione](#-installazione)
+- [Configurazione](#-configurazione)
+- [Avvio dell'Applicazione](#-avvio-dellapplicazione)
+- [Struttura del Progetto](#-struttura-del-progetto)
+- [API Endpoints](#-api-endpoints)
+- [Credenziali di Test](#-credenziali-di-test)
+- [Database](#-database)
+- [Sicurezza](#-sicurezza)
 
 ## ✨ Caratteristiche
 
