@@ -182,7 +182,7 @@ const LoginPage = () => {
                         <p className="text-slate-400 text-sm">
                             Non hai un account?{' '}
                             <button className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200 font-medium">
-                                Contatta l'amministratore
+                                Registrati
                             </button>
                         </p>
                     </div>
