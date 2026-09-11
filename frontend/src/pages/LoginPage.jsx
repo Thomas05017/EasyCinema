@@ -181,9 +181,9 @@ const LoginPage = () => {
                     <div className="mt-8 pt-6 border-t border-slate-700/50 text-center">
                         <p className="text-slate-400 text-sm">
                             Non hai un account?{' '}
-                            <button className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200 font-medium">
+                            <Link to="/register" className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200 font-medium">
                                 Registrati
-                            </button>
+                            </Link>
                         </p>
                     </div>
                 </div>
