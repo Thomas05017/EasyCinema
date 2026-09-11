@@ -9,19 +9,23 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect(err => {
+// Verifica che la connessione al pool funzioni
+db.query('SELECT 1', (err) => {
     if (err) {
         console.error('Errore durante la connessione a MySQL:', err);
         return;
     }
-    console.log('Connesso al database MySQL.');
+    console.log('Connesso al database MySQL (pool).');
 });
 
 const verifyToken = (req, res, next) => {
@@ -128,99 +132,116 @@ app.post('/api/bookings', verifyToken, (req, res) => {
         return res.status(400).json({ message: 'Dati prenotazione non validi.' });
     }
 
-    db.beginTransaction(async (err) => {
+    // Prendiamo una connessione dedicata dal pool per l'intera transazione
+    db.getConnection((err, connection) => {
         if (err) {
-            console.error('Errore nell\'avvio della transazione:', err);
+            console.error('Errore nell\'ottenere una connessione:', err);
             return res.status(500).json({ message: 'Errore interno del server.' });
         }
 
-        try {
-            // Verifica che i posti siano disponibili
-            const seatChecks = selectedSeats.map(seat => {
-                const [row, col] = seat.split('-').map(Number);
-                return new Promise((resolve, reject) => {
-                    const sql = 'SELECT is_booked FROM seats WHERE showtime_id = ? AND row_index = ? AND col_index = ?';
-                    db.query(sql, [showtimeId, row, col], (err, results) => {
-                        if (err) {
-                            reject(err);
-                        } else if (results.length === 0) {
-                            reject(new Error(`Posto ${row + 1}-${col + 1} non trovato.`));
-                        } else if (results[0].is_booked) {
-                            reject(new Error(`Posto ${row + 1}-${col + 1} è già occupato.`));
-                        } else {
-                            resolve();
-                        }
+        const release = () => connection.release();
+
+        connection.beginTransaction(async (err) => {
+            if (err) {
+                console.error('Errore nell\'avvio della transazione:', err);
+                release();
+                return res.status(500).json({ message: 'Errore interno del server.' });
+            }
+
+            try {
+                // 1. Blocca e verifica ogni posto SEQUENZIALMENTE con SELECT ... FOR UPDATE
+                //    Questo mette un lock a livello di riga: se un'altra transazione sta
+                //    verificando/aggiornando lo stesso posto, questa query attende
+                //    finché l'altra non fa commit/rollback.
+                for (const seat of selectedSeats) {
+                    const [row, col] = seat.split('-').map(Number);
+
+                    const seatRow = await new Promise((resolve, reject) => {
+                        const sql = `
+                            SELECT is_booked FROM seats 
+                            WHERE showtime_id = ? AND row_index = ? AND col_index = ?
+                            FOR UPDATE
+                        `;
+                        connection.query(sql, [showtimeId, row, col], (err, results) => {
+                            if (err) return reject(err);
+                            if (results.length === 0) {
+                                return reject(new Error(`Posto ${row + 1}-${col + 1} non trovato.`));
+                            }
+                            resolve(results[0]);
+                        });
+                    });
+
+                    if (seatRow.is_booked) {
+                        throw new Error(`Posto già occupato. Riprova con un'altra selezione.`);
+                    }
+                }
+
+                // 2. Ottiene l'ID dell'utente
+                const userResult = await new Promise((resolve, reject) => {
+                    connection.query('SELECT id FROM users WHERE username = ?', [username], (err, results) => {
+                        if (err) reject(err);
+                        else if (results.length === 0) reject(new Error('Utente non trovato.'));
+                        else resolve(results[0]);
                     });
                 });
-            });
 
-            await Promise.all(seatChecks);
+                const userId = userResult.id;
 
-            // Ottiene l'ID dell'utente
-            const userResult = await new Promise((resolve, reject) => {
-                db.query('SELECT id FROM users WHERE username = ?', [username], (err, results) => {
-                    if (err) reject(err);
-                    else if (results.length === 0) reject(new Error('Utente non trovato.'));
-                    else resolve(results[0]);
+                // 3. Crea la prenotazione
+                const bookingResult = await new Promise((resolve, reject) => {
+                    const sql = 'INSERT INTO bookings (user_id, showtime_id, booking_date) VALUES (?, ?, NOW())';
+                    connection.query(sql, [userId, showtimeId], (err, result) => {
+                        if (err) reject(err);
+                        else resolve(result);
+                    });
                 });
-            });
 
-            const userId = userResult.id;
+                const bookingId = bookingResult.insertId;
 
-            // Crea una nuova prenotazione
-            const bookingResult = await new Promise((resolve, reject) => {
-                const insertBookingSql = 'INSERT INTO bookings (user_id, showtime_id, booking_date) VALUES (?, ?, NOW())';
-                db.query(insertBookingSql, [userId, showtimeId], (err, result) => {
-                    if (err) reject(err);
-                    else resolve(result);
-                });
-            });
+                // 4. Aggiorna lo stato dei posti (ora protetti dal lock preso al passo 1)
+                for (const seat of selectedSeats) {
+                    const [row, col] = seat.split('-').map(Number);
 
-            const bookingId = bookingResult.insertId;
+                    await new Promise((resolve, reject) => {
+                        const sql = 'UPDATE seats SET is_booked = TRUE WHERE showtime_id = ? AND row_index = ? AND col_index = ?';
+                        connection.query(sql, [showtimeId, row, col], (err) => {
+                            if (err) return reject(err);
 
-            // Aggiorna lo stato dei posti
-            const updateSeats = selectedSeats.map(seat => {
-                const [row, col] = seat.split('-').map(Number);
-                return new Promise((resolve, reject) => {
-                    // Aggiorna lo stato del posto
-                    const sql = 'UPDATE seats SET is_booked = TRUE WHERE showtime_id = ? AND row_index = ? AND col_index = ?';
-                    db.query(sql, [showtimeId, row, col], (err, result) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            const sql = 'INSERT INTO booking_seats (booking_id, row_index, col_index) VALUES (?, ?, ?)';
-                            db.query(sql, [bookingId, row, col], (err) => {
+                            const sql2 = 'INSERT INTO booking_seats (booking_id, row_index, col_index) VALUES (?, ?, ?)';
+                            connection.query(sql2, [bookingId, row, col], (err) => {
                                 if (err) reject(err);
                                 else resolve();
                             });
-                        }
-                    });
-                });
-            });
-
-            await Promise.all(updateSeats);
-
-            db.commit((err) => {
-                if (err) {
-                    console.error('Errore nel commit della transazione:', err);
-                    return db.rollback(() => {
-                        res.status(500).json({ message: 'Errore durante la prenotazione.' });
+                        });
                     });
                 }
 
-                res.status(201).json({
-                    message: 'Prenotazione effettuata con successo!',
-                    bookingId: bookingId,
-                    seatsBooked: selectedSeats.length
-                });
-            });
+                // 5. Commit
+                connection.commit((err) => {
+                    if (err) {
+                        console.error('Errore nel commit della transazione:', err);
+                        return connection.rollback(() => {
+                            release();
+                            res.status(500).json({ message: 'Errore durante la prenotazione.' });
+                        });
+                    }
 
-        } catch (error) {
-            console.error('Errore durante la prenotazione:', error);
-            db.rollback(() => {
-                res.status(400).json({ message: 'Errore durante la prenotazione.' });
-            });
-        }
+                    release();
+                    res.status(201).json({
+                        message: 'Prenotazione effettuata con successo!',
+                        bookingId: bookingId,
+                        seatsBooked: selectedSeats.length
+                    });
+                });
+
+            } catch (error) {
+                console.error('Errore durante la prenotazione:', error.message);
+                connection.rollback(() => {
+                    release();
+                    res.status(409).json({ message: error.message || 'Errore durante la prenotazione.' });
+                });
+            }
+        });
     });
 });
 
