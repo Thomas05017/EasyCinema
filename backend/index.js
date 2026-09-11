@@ -284,12 +284,18 @@ app.post('/api/register', async (req, res) => {
     if (!username || !password)
         return res.status(400).json({ message: 'Username e password sono richiesti.' });
 
+    if (username.trim().length < 3)
+        return res.status(400).json({ message: 'Lo username deve avere almeno 3 caratteri.' });
+
+    if (password.length < 6)
+        return res.status(400).json({ message: 'La password deve avere almeno 6 caratteri.' });
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const sql = 'INSERT INTO users (username, password) VALUES (?, ?)';
-        db.query(sql, [username, hashedPassword], (err, result) => {
+        db.query(sql, [username.trim(), hashedPassword], (err, result) => {
             if (err) {
-                if (err.code == 'ER_DUP_ENTRY')     // Codice errore MySQL per chiave duplicata
+                if (err.code == 'ER_DUP_ENTRY')
                     return res.status(409).json({ message: 'Username già in uso.'});
                 
                 console.error('Errore di registrazione:', err);
