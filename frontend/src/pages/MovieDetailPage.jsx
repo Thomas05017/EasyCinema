@@ -12,7 +12,7 @@ const MovieDetailPage = () => {
   const fetchMovie = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/movies/${id}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/movies/${id}`);
       if (!response.ok) {
         throw new Error('Film non trovato.');
       }
