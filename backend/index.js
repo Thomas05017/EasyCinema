@@ -4,6 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const mysql = require('mysql2');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 app.use(express.json());
@@ -44,6 +45,14 @@ const verifyToken = (req, res, next) => {
         next();
     });
 };
+
+const authLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minuto
+    max: 10, // massimo 10 tentativi per IP in 1 minuto
+    message: { message: 'Troppi tentativi. Riprova più tardi.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 app.get('/api/movies', (req, res) => {
     const sql = `SELECT * FROM movies`;
@@ -299,8 +308,7 @@ app.get('/api/my-bookings', verifyToken, (req, res) => {
     });
 });
 
-app.post('/api/register', async (req, res) => {
-    const { username, password } = req.body;
+app.post('/api/register', authLimiter, async (req, res) => {
 
     if (!username || !password)
         return res.status(400).json({ message: 'Username e password sono richiesti.' });
@@ -329,7 +337,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', authLimiter, async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password)
@@ -357,6 +365,18 @@ app.post('/api/login', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+// 404 - route non trovata
+app.use((req, res) => {
+    res.status(404).json({ message: 'Risorsa non trovata.' });
+});
+
+// Error handler centralizzato - cattura errori non gestiti nei middleware/route
+app.use((err, req, res, next) => {
+    console.error('Errore non gestito:', err);
+    res.status(err.status || 500).json({
+        message: err.message || 'Errore interno del server.'
+    });
+});
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

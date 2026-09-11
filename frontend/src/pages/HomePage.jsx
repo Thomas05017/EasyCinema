@@ -245,7 +245,7 @@ const HomePage = () => {
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 011 1v14a1 1 0 01-1-1H3a1 1 0 01-1-1V5a1 1 0 011-1h4zM9 3h6v1H9V3zM5 6h14v12H5V6z"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 011 1v14a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1h4zM9 3h6v1H9V3zM5 6h14v12H5V6z"/>
                 </svg>
               </div>
               <span className="text-slate-300 font-medium">EasyCinema</span>
