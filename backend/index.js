@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -6,13 +7,13 @@ const mysql = require('mysql2');
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
 
 const db = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'user',
-    password: 'password',
-    database: 'cinema_db'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
 db.connect(err => {
@@ -31,7 +32,7 @@ const verifyToken = (req, res, next) => {
         return res.status(401).json({ message: 'Token di accesso richiesto.' });
     }
 
-    jwt.verify(token, '123abcxyz987', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).json({ message: 'Token non valido.' });
         }
@@ -322,12 +323,13 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ message: 'Credenziali non valide.' });
         }
 
-        const token = jwt.sign({ username: user.username }, '123abcxyz987', { expiresIn: '1h' });
+        const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.json({ message: 'Login avvenuto con successo!', token });
     });
 });
 
-app.listen(5000, () => {
-    console.log(`Server is running on http://localhost:${5000}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
