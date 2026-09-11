@@ -1,12 +1,13 @@
+require('dotenv').config();
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const movies = require('./data/movies');
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'user',
-    password: 'password',
-    database: 'cinema_db',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
 });
 
 const createTables = async () => {
