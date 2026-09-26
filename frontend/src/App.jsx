@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentCancelPage from './pages/PaymentCancelPage';
 import './index.css';
 
 function App() {
@@ -20,6 +22,22 @@ function App() {
         element={
           <ProtectedRoute>
             <MyBookingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/success"
+        element={
+          <ProtectedRoute>
+            <PaymentSuccessPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/cancel"
+        element={
+          <ProtectedRoute>
+            <PaymentCancelPage />
           </ProtectedRoute>
         }
       />

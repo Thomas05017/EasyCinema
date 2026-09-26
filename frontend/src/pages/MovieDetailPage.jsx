@@ -34,10 +34,6 @@ const MovieDetailPage = () => {
     fetchMovie();
   }, [id]);
 
-  const handleBookingSuccess = () => {
-    fetchMovie();
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
@@ -243,7 +239,7 @@ const MovieDetailPage = () => {
         {/* Seat Selection */}
         {selectedShowtime && (
           <div className="transform transition-all duration-500 ease-out animate-in fade-in slide-in-from-bottom-8">
-            <SeatSelection showtime={selectedShowtime} onBookingSuccess={handleBookingSuccess} />
+            <SeatSelection showtime={selectedShowtime} />
           </div>
         )}
       </div>

@@ -2,21 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const SeatSelection = ({ showtime, onBookingSuccess }) => {
+const SeatSelection = ({ showtime }) => {
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
 
     const handleSeatClick = (row, col) => {
-        if (showtime.seats[row][col] === 1) {
+        // 0 = disponibile, 1 = occupato, 2 = in attesa di pagamento
+        if (showtime.seats[row][col] !== 0) {
             return;
         }
-        
+
         const seatKey = `${row}-${col}`;
-        
+
         if (selectedSeats.includes(seatKey))
             setSelectedSeats(selectedSeats.filter(seat => seat !== seatKey));
         else
@@ -34,7 +34,7 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/checkout-session`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,43 +54,39 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
 
             const data = await response.json();
 
-            if (response.ok) {
-                setSuccess(true);
-                setTimeout(() => {
-                    setSelectedSeats([]);
-                    setSuccess(false);
-                    if (onBookingSuccess) onBookingSuccess();
-                }, 2000);
+            if (response.ok && data.url) {
+                window.location.href = data.url; // Redirect alla pagina di pagamento Stripe
             } else {
-                setError(data.message || 'Errore durante la prenotazione. Riprova più tardi.');
+                setError(data.message || 'Errore durante l\'avvio del pagamento. Riprova più tardi.');
+                setIsLoading(false);
             }
         } catch (error) {
             console.error('Errore durante la prenotazione:', error);
             setError('Errore di connessione. Verifica la tua connessione internet.');
-        } finally {
             setIsLoading(false);
         }
     };
 
     const getSeatInfo = (row, col) => {
         const seatNumber = `${String.fromCharCode(65 + row)}${col + 1}`;
-        const isBooked = showtime.seats[row][col] === 1;
+        const seatValue = showtime.seats[row][col];
         const isSelected = selectedSeats.includes(`${row}-${col}`);
 
-        if (isBooked) return { 
-            title: `Posto ${seatNumber} - Occupato`, 
-            class: 'bg-red-500/80 border-red-400 cursor-not-allowed',
-            icon: 'occupied'
+        if (seatValue === 1) return {
+            title: `Posto ${seatNumber} - Occupato`,
+            class: 'bg-red-500/80 border-red-400 cursor-not-allowed'
         };
-        if (isSelected) return { 
-            title: `Posto ${seatNumber} - Selezionato`, 
-            class: 'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-400 shadow-lg transform scale-110',
-            icon: 'selected'
+        if (seatValue === 2) return {
+            title: `Posto ${seatNumber} - In attesa di pagamento`,
+            class: 'bg-amber-500/80 border-amber-400 cursor-not-allowed'
         };
-        return { 
-            title: `Posto ${seatNumber} - Disponibile`, 
-            class: 'bg-emerald-500/80 hover:bg-emerald-400 border-emerald-400/60 hover:border-emerald-300 cursor-pointer hover:shadow-lg hover:scale-105',
-            icon: 'available'
+        if (isSelected) return {
+            title: `Posto ${seatNumber} - Selezionato`,
+            class: 'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-400 shadow-lg transform scale-110'
+        };
+        return {
+            title: `Posto ${seatNumber} - Disponibile`,
+            class: 'bg-emerald-500/80 hover:bg-emerald-400 border-emerald-400/60 hover:border-emerald-300 cursor-pointer hover:shadow-lg hover:scale-105'
         };
     };
 
@@ -115,6 +111,7 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
             </div>
         );
     }
+
     return (
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl shadow-2xl border border-slate-700/50 p-8 lg:p-12">
             {/* Header */}
@@ -140,6 +137,10 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                 <div className="flex items-center gap-3">
                     <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg border-2 border-indigo-400 shadow-lg"></div>
                     <span className="text-slate-300 font-medium">Selezionato</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-amber-500 rounded-lg border-2 border-amber-400 shadow-sm"></div>
+                    <span className="text-slate-300 font-medium">In attesa di pagamento</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="w-6 h-6 bg-red-500 rounded-lg border-2 border-red-400 shadow-sm"></div>
@@ -169,7 +170,7 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                             <div className="w-8 h-8 flex items-center justify-center text-slate-400 font-bold text-sm bg-slate-700/50 rounded-lg mr-2">
                                 {String.fromCharCode(65 + rowIndex)}
                             </div>
-                            
+
                             {/* Seats in Row */}
                             {row.map((seatStatus, colIndex) => {
                                 const seatInfo = getSeatInfo(rowIndex, colIndex);
@@ -179,13 +180,13 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                                         onClick={() => handleSeatClick(rowIndex, colIndex)}
                                         className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 font-bold text-xs text-white ${seatInfo.class}`}
                                         title={seatInfo.title}
-                                        disabled={seatStatus === 1 || isLoading}
+                                        disabled={seatStatus !== 0 || isLoading}
                                     >
                                         {colIndex + 1}
                                     </button>
                                 );
                             })}
-                            
+
                             {/* Row Label (Right) */}
                             <div className="w-8 h-8 flex items-center justify-center text-slate-400 font-bold text-sm bg-slate-700/50 rounded-lg ml-2">
                                 {String.fromCharCode(65 + rowIndex)}
@@ -233,27 +234,13 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                 </div>
             )}
 
-            {/* Success Message */}
-            {success && (
-                <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3">
-                    <div className="w-6 h-6 text-emerald-400 flex-shrink-0">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </div>
-                    <span className="text-emerald-300 font-medium">
-                        Prenotazione completata con successo! 🎉
-                    </span>
-                </div>
-            )}
-
             {/* Booking Button */}
             <div className="flex justify-center">
                 <button
                     onClick={handleBooking}
-                    disabled={selectedSeats.length === 0 || isLoading || success}
+                    disabled={selectedSeats.length === 0 || isLoading}
                     className={`font-bold py-4 px-8 rounded-2xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 text-lg ${
-                        selectedSeats.length === 0 || isLoading || success
+                        selectedSeats.length === 0 || isLoading
                             ? 'bg-slate-600 text-slate-400 cursor-not-allowed hover:scale-100 shadow-none'
                             : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white'
                     }`}
@@ -261,14 +248,7 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                     {isLoading ? (
                         <>
                             <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                            <span>Prenotando...</span>
-                        </>
-                    ) : success ? (
-                        <>
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Prenotato!</span>
+                            <span>Reindirizzamento al pagamento...</span>
                         </>
                     ) : selectedSeats.length === 0 ? (
                         <>
@@ -282,7 +262,7 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                             </svg>
-                            <span>Prenota {selectedSeats.length} {selectedSeats.length === 1 ? 'posto' : 'posti'} - €{totalPrice.toFixed(2)}</span>
+                            <span>Paga e prenota {selectedSeats.length} {selectedSeats.length === 1 ? 'posto' : 'posti'} - €{totalPrice.toFixed(2)}</span>
                         </>
                     )}
                 </button>
@@ -297,9 +277,9 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                             </svg>
                         </div>
-                        <p className="text-slate-300 text-sm font-medium">Pagamento sicuro</p>
+                        <p className="text-slate-300 text-sm font-medium">Pagamento sicuro con Stripe</p>
                     </div>
-                    
+
                     <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                         <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
                             <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +288,7 @@ const SeatSelection = ({ showtime, onBookingSuccess }) => {
                         </div>
                         <p className="text-slate-300 text-sm font-medium">Conferma istantanea</p>
                     </div>
-                    
+
                     <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                         <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
                             <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
