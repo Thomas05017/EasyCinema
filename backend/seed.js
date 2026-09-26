@@ -85,7 +85,7 @@ const createTables = async () => {
                 showtime_id INT NOT NULL,
                 row_index INT NOT NULL,
                 col_index INT NOT NULL,
-                is_booked BOOLEAN NOT NULL DEFAULT FALSE,
+                status ENUM('available', 'pending', 'booked') NOT NULL DEFAULT 'available',
                 FOREIGN KEY (showtime_id) REFERENCES showtimes(id) ON DELETE CASCADE,
                 UNIQUE KEY unique_seat_per_showtime (showtime_id, row_index, col_index)
             )`,
@@ -109,6 +109,9 @@ const createTables = async () => {
                 user_id INT NOT NULL,
                 showtime_id INT NOT NULL,
                 booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                payment_status ENUM('pending', 'paid', 'expired', 'failed') NOT NULL DEFAULT 'pending',
+                pending_expires_at DATETIME NULL,
+                stripe_session_id VARCHAR(255) NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (showtime_id) REFERENCES showtimes(id) ON DELETE CASCADE
             )`,
@@ -224,12 +227,12 @@ const populateData = async () => {
             if (showtimeId) {
                 for (let rowIndex = 0; rowIndex < showtime.seats.length; rowIndex++) {
                     for (let colIndex = 0; colIndex < showtime.seats[rowIndex].length; colIndex++) {
-                        const isBooked = showtime.seats[rowIndex][colIndex] === 1;
-                        
+                        const status = showtime.seats[rowIndex][colIndex] === 1 ? 'booked' : 'available';
+
                         await new Promise((resolve, reject) => {
                             db.query(
-                                'INSERT IGNORE INTO seats (showtime_id, row_index, col_index, is_booked) VALUES (?, ?, ?, ?)',
-                                [showtimeId, rowIndex, colIndex, isBooked],
+                                'INSERT IGNORE INTO seats (showtime_id, row_index, col_index, status) VALUES (?, ?, ?, ?)',
+                                [showtimeId, rowIndex, colIndex, status],
                                 (err) => {
                                     if (err) {
                                         console.error(`Error inserting seat ${rowIndex}-${colIndex}:`, err);
