@@ -36,6 +36,7 @@ const createTables = async () => {
         db.query(
             `CREATE TABLE IF NOT EXISTS movies (
                 id INT AUTO_INCREMENT PRIMARY KEY,
+                tmdb_id INT UNIQUE,
                 title VARCHAR(255) NOT NULL,
                 genres VARCHAR(500),
                 description TEXT,

@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+      "start": "node index.js",
+      "dev": "nodemon index.js",
+      "stripe:listen": "stripe listen --events checkout.session.completed,checkout.session.expired --forward-to localhost:5000/api/webhook/stripe",
+      "sync:movies": "node syncMovies.js"
   },
   "keywords": [],
   "author": "",
