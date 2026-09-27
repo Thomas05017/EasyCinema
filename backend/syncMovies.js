@@ -95,7 +95,7 @@ const insertShowtimesIfMissing = (movieId) => {
 const run = async () => {
     try {
         console.log('Recupero film attualmente in sala da TMDB...');
-        const tmdbMovies = await fetchNowPlaying(10); // limitiamo a 10 per non esagerare con le chiamate
+        const tmdbMovies = await fetchNowPlaying(20); // limitiamo a 20 per non esagerare con le chiamate
 
         for (const tmdbMovie of tmdbMovies) {
             const localMovie = await mapToLocalSchema(tmdbMovie);
