@@ -112,7 +112,6 @@ app.post('/api/webhook/stripe', express.raw({ type: 'application/json' }), (req,
 });
 
 app.use(express.json());
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
 
 const db = mysql.createPool({
     host: process.env.DB_HOST,
@@ -502,6 +501,7 @@ app.get('/api/my-bookings', verifyToken, (req, res) => {
 });
 
 app.post('/api/register', authLimiter, async (req, res) => {
+    const { username, password } = req.body;
 
     if (!username || !password)
         return res.status(400).json({ message: 'Username e password sono richiesti.' });
