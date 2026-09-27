@@ -1,1 +1,4 @@
+# Fallback per "npm run dev" lanciato FUORI da Docker.
+# Il frontend containerizzato (docker-compose.dev.yml) NON legge questo file.
+
 VITE_API_URL=http://localhost:5000

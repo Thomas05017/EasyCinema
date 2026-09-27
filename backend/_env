@@ -1,3 +1,8 @@
+# Usato da: seed.js, syncMovies.js (eseguiti dall'host)
+# e da "npm run dev" se lanciato FUORI da Docker.
+# Il backend containerizzato (docker-compose.dev.yml) NON legge questo file:
+# le sue variabili vengono passate direttamente nel compose.
+
 DB_HOST=127.0.0.1
 DB_USER=user
 DB_PASSWORD=password
